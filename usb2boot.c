@@ -125,7 +125,7 @@ int main(int argc, char *argv[]) {
 	int r = -1;
 	int t = -1;
 
-	unsigned char macpat[6]; int macskip = 6;
+	unsigned char macpat[6]; int macskip = 0;
 
 	in_addr_t bc = 0;
 	in_addr_t sc = 0;
@@ -134,7 +134,7 @@ int main(int argc, char *argv[]) {
 	if(argc > 1 && argc < 5) {
 		fprintf(stderr, "Usage  : ./netboot <broadcast ip> <interface ip> <ip to assign> <mac>\n");
 		fprintf(stderr, "Example: ./netboot 192.168.0.255 192.168.0.1 192.168.0.55 00:11:ee:ff:66:ef\n");
-		fprintf(stderr, "Example: ./netboot 192.168.0.255 192.168.0.1 192.168.0.55 -66-ef\n");
+		fprintf(stderr, "Example: ./netboot 192.168.0.255 192.168.0.1 192.168.0.55 66-ef-\n");
 		fprintf(stderr, "\nTo find out who requesting boot run: ./netboot\n");
 		exit(1);
 	}
@@ -154,8 +154,8 @@ int main(int argc, char *argv[]) {
 			else if(p[1]>='a'&&p[1]<='f') { d = d|(p[1]-'a'+0xa); }
 			else if(p[1]>='A'&&p[1]<='F') { d = d|(p[1]-'A'+0xa); }
 
-			macpat[6-macskip] = d;
-			macskip--;
+			macpat[macskip] = d;
+			macskip++;
 			p+=2;
 		}}
 	}
@@ -164,9 +164,9 @@ int main(int argc, char *argv[]) {
 
 	if(cc) {
 		fprintf(stderr, "mac pattern:");
-		{ int i = macskip;
-		  while(i--) { fprintf(stderr,"?? "); }
-		  i = 0; while(i<(6-macskip)) { fprintf(stderr, "%02x ",macpat[i]); i++; }
+		{ int i = 0;
+		  while(i<(macskip)) { fprintf(stderr, "%02x ",macpat[i]); i++; }
+		  while(i++ < 6) { fprintf(stderr,"?? "); }
 		}
 		fprintf(stderr, "\n");
 	}
@@ -236,12 +236,6 @@ int main(int argc, char *argv[]) {
 				if(p[i] == 0x0) { i++; continue; }
 				/* t=6 vendor class id */
 				if(p[i] == 0x3c) {
-					//printf("option size %d\n", p[i+1]);
-					//char c = p[i + p[i+1] + 2];
-					//p[i + p[i+1] + 2] = '\0';
-					//printf("vendor class id: %s\n", &p[i+2]);
-					//p[i + p[i+1] + 2] = c;
-
 					if(strncmp(&p[i+2], "DM814x ROM v1.0", 15) == 0)
 						printf("am335 ROM boot request\n");
 				}
@@ -258,7 +252,7 @@ int main(int argc, char *argv[]) {
 			if(!cc) continue;
 
 			/* Mac address matches? */
-			if(memcmp(p+28+macskip,macpat,(6-macskip))) continue;
+			if(memcmp(p+28,macpat,(macskip))) continue;
 
 			printf("matched\n");
 
