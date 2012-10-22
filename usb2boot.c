@@ -1,7 +1,5 @@
 /* https://github.com/robertinant/usb2boot
 
-  To build it: gcc -o netboot netboot.c
-
   usb2boot.c
 
   Copyright (C) 2012 Robert Wessels
@@ -24,9 +22,7 @@
   2. Altered source versions must be plainly marked as such, and must not be
      misrepresented as being the original software.
   3. This notice may not be removed or altered from any source distribution.
-
 */
-
 
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -132,9 +128,9 @@ int main(int argc, char *argv[]) {
 	in_addr_t cc = 0;
 
 	if(argc > 1 && argc < 5) {
-		fprintf(stderr, "Usage  : ./netboot <broadcast ip> <interface ip> <ip to assign> <mac>\n");
-		fprintf(stderr, "Example: ./netboot 192.168.0.255 192.168.0.1 192.168.0.55 00:11:ee:ff:66:ef\n");
-		fprintf(stderr, "Example: ./netboot 192.168.0.255 192.168.0.1 192.168.0.55 66-ef-\n");
+		fprintf(stderr, "Usage  : ./usb2boot <broadcast ip> <interface ip> <ip to assign> <mac>\n");
+		fprintf(stderr, "Example: ./usb2boot 192.168.0.255 192.168.0.1 192.168.0.55 00:11:ee:ff:66:ef\n");
+		fprintf(stderr, "Example: ./usb2boot 192.168.0.255 192.168.0.1 192.168.0.55 66-ef-\n");
 		fprintf(stderr, "\nTo find out who requesting boot run: ./netboot\n");
 		exit(1);
 	}
