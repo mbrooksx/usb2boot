@@ -26,6 +26,7 @@ usb2boot: $(OBJ)
 
 clean:
 	rm -rf $(ODIR) *~ core $(INCDIR)/*~
+	rm usb2boot
 
 dirs: ${ODIR}
 
