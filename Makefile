@@ -10,6 +10,7 @@ LDIR =
 LIBS=
 
 MKDIR=mkdir
+.PHONY: dirs
 
 _OBJ = usb2boot.o usb_linux.o
 OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
@@ -17,12 +18,16 @@ OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
 $(ODIR)/%.o: %.c $(DEPS)
 	$(CC) -c -o $@ $< $(CFLAGS)
 
+all: dirs usb2boot
 usb2boot: $(OBJ)
 	gcc -o $@ $^ $(CFLAGS) $(LIBS)
 
 .PHONY: clean
 
 clean:
-	rm -f $(ODIR)/*.o *~ core $(INCDIR)/*~ 
+	rm -rf $(ODIR) *~ core $(INCDIR)/*~
 
+dirs: ${ODIR}
 
+${ODIR}:
+	mkdir -p ${ODIR}
