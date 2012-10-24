@@ -232,7 +232,7 @@ int main(int argc, char *argv[]) {
 				if(p[i] == 0x0) { i++; continue; }
 				/* t=6 vendor class id */
 				if(p[i] == 0x3c) {
-					if(strncmp(&p[i+2], "DM814x ROM v1.0", 15) == 0)
+					if(strncmp(&p[i+2], "DM814x ROM v1.0", 15) == 0 || strncmp(&p[i+2], "AM335x ROM v1.0", 15) == 0)
 						printf("am335 ROM boot request\n");
 				}
 				
