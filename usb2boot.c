@@ -85,7 +85,7 @@ void tftpd(int s) {
 			unsigned char o[1500];
 			printf("rrq %s\n", p+2);
 
-			f = open("MLO", O_RDONLY);
+			f = open(p+2, O_RDONLY);
 			if(f == -1) {
 				o[0] = 0; o[1] = 5;
 				o[2] = 0; o[3] = 1;
@@ -120,6 +120,7 @@ int main(int argc, char *argv[]) {
 	int s = socket(PF_INET, SOCK_DGRAM, IPPROTO_IP);
 	int r = -1;
 	int t = -1;
+	int u = 0;
 
 	unsigned char macpat[6]; int macskip = 0;
 
@@ -232,13 +233,20 @@ int main(int argc, char *argv[]) {
 				if(p[i] == 0x0) { i++; continue; }
 				/* t=6 vendor class id */
 				if(p[i] == 0x3c) {
-					if(strncmp(&p[i+2], "DM814x ROM v1.0", 15) == 0 || strncmp(&p[i+2], "AM335x ROM v1.0", 15) == 0)
-						printf("am335 ROM boot request\n");
+					if(strncmp(&p[i+2], "AM335x ROM", 10) == 0) {
+						printf("am335x ROM boot request\n"); 
+						u = 0;
+					}
+					if(strncmp(&p[i+2], "AM335x U-Boot SPL", 17) == 0) {
+						printf("am335x U-Boot request\n"); 
+						u = 1;
+					}
 				}
 				
 				i += p[i+1] + 2;
 			  }
 			}
+
 			/* Print MAC address and host name if any */
 			printf("request %u from %02x-%02x-%02x-%02x-%02x-%02x ",type,p[28],p[29],p[30],p[31],p[32],p[33]);
 			if(pos12!=-1) { printf("(%.*s)\n", p[pos12],p+pos12+1);
@@ -252,7 +260,6 @@ int main(int argc, char *argv[]) {
 
 			printf("matched\n");
 
-			/**/
 			if(type == 1 || type == 3) {
 				int i,m;
 				/* Boot reply */
@@ -264,7 +271,11 @@ int main(int argc, char *argv[]) {
 				*(uint32_t*)(p+20)=(uint32_t)sc;
 
 				i = 108;
-				p[i++] = 'M'; p[i++] = 'L'; p[i++] = 'O';
+				if(u) {
+					p[i++] = 'u'; p[i++] = '-'; p[i++] = 'b'; p[i++] = 'o'; p[i++] = 'o'; p[i++] = 't'; p[i++] = '.'; p[i++] = 'i'; p[i++] = 'm'; p[i++] = 'g';
+				}  else {
+					p[i++] = 'M'; p[i++] = 'L'; p[i++] = 'O';
+				}
 
 				i = 240;
 
