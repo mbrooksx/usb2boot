@@ -71,7 +71,7 @@ int wait_for_device(void)
 }
 
 
-void tftpd(int s) {
+int tftpd(int s) {
 	static int f;
 	static int blksize = 512;
 	static int last_sent = 0;
@@ -83,7 +83,7 @@ void tftpd(int s) {
 		int n = recvfrom(s,p,1500,0,(struct sockaddr *)&peer,&peerl);
 		if(p[1] == 1) {
 			unsigned char o[1500];
-			printf("rrq %s\n", p+2);
+			printf("request %s\n", p+2);
 
 			f = open(p+2, O_RDONLY);
 			if(f == -1) {
@@ -103,7 +103,7 @@ void tftpd(int s) {
 			no = (p[2]<<8)|p[3];
 		}
 
-		if(was_last) { printf("end\n"); was_last = 0; blksize = 512; last_sent = 0; close(f); f = -1; }
+		if(was_last) { was_last = 0; blksize = 512; last_sent = 0; close(f); f = -1; }
 		if(no++ == last_sent) {
 			int n;
 			unsigned char o[10240] = {0,3,(no>>8)&0xff,no&0xff};
@@ -111,9 +111,13 @@ void tftpd(int s) {
 			n = read(f,o+4,blksize);
 			sendto(s,o,n+4,0,(struct sockaddr *)&peer,peerl);
 			last_sent = no;
-			if(n<blksize) was_last = 1;
+			if(n<blksize) { 
+				was_last = 1;
+				printf("boot end %d packets send\n", no);
+			}
 		}
 	}
+	return was_last;
 }
 
 int main(int argc, char *argv[]) {
@@ -211,7 +215,10 @@ int main(int argc, char *argv[]) {
 		n = select((t>s?t:s)+1,&rset,0,0,0);
 
 		if(cc&&FD_ISSET(t,&rset)) {
-			tftpd(t);
+			if(tftpd(t) && u == 1) {
+				/* Done booting. Exit */
+				exit(EXIT_SUCCESS);
+			}
 		}
 
 		if(FD_ISSET(s,&rset)) {
@@ -223,7 +230,7 @@ int main(int argc, char *argv[]) {
 
 			/* Boot reply. Skip */
 			if(type == 2) continue;
-			printf("type::%u\n", type);
+			//printf("type::%u\n", type);
 
 			/* Options. Start after magic cookie */
 			{ int i = 240;
